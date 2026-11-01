@@ -10,7 +10,8 @@ class Rimonto < Formula
 
   def install
     libexec.install Dir["*"]
-    (bin/"rimonto").write_env_script Formula["node"].opt_bin/"node", libexec/"dist/rimonto.js", {}
+    chmod 0755, libexec/"dist/rimonto.js"
+    (bin/"rimonto").write_env_script libexec/"dist/rimonto.js", PATH: "#{formula_opt_bin("node")}:$PATH"
   end
 
   test do
