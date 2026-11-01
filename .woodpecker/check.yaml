@@ -24,8 +24,9 @@ steps:
   - name: npm
     image: rimonto-ci:local
     commands:
-      - FORMULA=$$(sed -nE 's|.*/download/v([0-9][^/]*)/.*|\1|p' Formula/rimonto.rb)
-      - NPM=$$(npm view rimonto version)
-      - echo "the formula offers $$FORMULA, npm $$NPM"
-      - test "$$FORMULA" = "$$NPM" || { echo "The formula and npm disagree: a release goes to both (README)."; exit 1; }
-      - npx -y "rimonto@$$NPM" --version | tee /dev/stderr | grep -q "^rimonto $$NPM "
+      - |
+        FORMULA=$$(sed -nE 's|.*/download/v([0-9][^/]*)/.*|\1|p' Formula/rimonto.rb)
+        NPM=$$(npm view rimonto version)
+        echo "the formula offers $$FORMULA, npm $$NPM"
+        if [ "$$FORMULA" != "$$NPM" ]; then echo "The formula and npm disagree. A release goes to both (README)."; exit 1; fi
+        npx -y "rimonto@$$NPM" --version | tee /dev/stderr | grep -q "^rimonto $$NPM "
