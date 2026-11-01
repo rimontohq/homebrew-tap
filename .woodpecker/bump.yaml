@@ -1,0 +1,53 @@
+# Moves the formula to npm's latest rimonto by itself (rm-cli's release workflow publishes it): every hour (the
+# Woodpecker cron "bump") or by hand. When npm has a newer version, it points the formula at that release's package,
+# audits, installs and tests it in Homebrew's image, and only then pushes it to dev with this repository's deploy key
+# (the secret tap_push_key, given to cron and manual runs only; GitHub: Settings → Deploy keys, "Woodpecker: the bump
+# pipeline…"; a lost key is replaced by a new one). The push to dev then runs check.yaml as usual.
+when:
+  - event: cron
+    cron: bump
+  - event: manual
+
+steps:
+  - name: a newer version
+    image: rimonto-ci:local
+    commands:
+      - |
+        NPM=$$(npm view rimonto version)
+        FORMULA=$$(sed -nE 's|.*/download/v([0-9][^/]*)/.*|\1|p' Formula/rimonto.rb)
+        echo "npm has $$NPM, the formula $$FORMULA"
+        if [ "$$NPM" = "$$FORMULA" ]; then exit 0; fi
+        URL="https://github.com/rimontohq/rm-cli/releases/download/v$$NPM/rimonto-$$NPM.tgz"
+        curl -fsSL -o /tmp/rimonto.tgz "$$URL"
+        SHA=$$(sha256sum /tmp/rimonto.tgz | cut -d' ' -f1)
+        sed -i -E "s|^  url \".*\"|  url \"$$URL\"|; s|^  sha256 \".*\"|  sha256 \"$$SHA\"|" Formula/rimonto.rb
+        git -c user.name="Rimonto CI" -c user.email="ci@rimonto.dev" commit -qam "rimonto $$NPM"
+        echo "$$NPM" > .bump
+        git show --stat HEAD
+
+  - name: audit, install, test
+    image: homebrew/brew:latest
+    commands:
+      - |
+        if [ ! -f .bump ]; then echo "nothing to move"; exit 0; fi
+        brew update --quiet > /dev/null
+        brew tap rimontohq/tap "$${CI_WORKSPACE}"
+        brew trust --formula rimontohq/tap/rimonto
+        brew audit --strict --online --formula rimontohq/tap/rimonto
+        brew install --formula rimontohq/tap/rimonto
+        brew test rimontohq/tap/rimonto
+        rimonto --version | tee /dev/stderr | grep -q "^rimonto $$(cat .bump) "
+
+  - name: push
+    image: rimonto-ci:local
+    environment:
+      TAP_PUSH_KEY:
+        from_secret: tap_push_key
+    commands:
+      - |
+        if [ ! -f .bump ]; then exit 0; fi
+        install -d -m 700 ~/.ssh
+        printf '%s\n' "$${TAP_PUSH_KEY}" > ~/.ssh/tap && chmod 600 ~/.ssh/tap
+        # GitHub's published host key, so the push goes to GitHub only.
+        echo 'github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl' > ~/.ssh/known_hosts
+        GIT_SSH_COMMAND="ssh -i $$HOME/.ssh/tap -o IdentitiesOnly=yes" git push git@github.com:rimontohq/homebrew-tap.git HEAD:dev
