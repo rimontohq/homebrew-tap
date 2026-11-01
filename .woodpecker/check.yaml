@@ -15,6 +15,9 @@ steps:
     commands:
       - brew update --quiet > /dev/null
       - brew tap rimontohq/tap "$${CI_WORKSPACE}"
+      # Homebrew loads a formula of another tap only once it is trusted (docs.brew.sh/Tap-Trust). People installing
+      # with the full name `brew install rimontohq/tap/rimonto` trust it by that; the audit comes first here.
+      - brew trust --formula rimontohq/tap/rimonto
       - brew audit --strict --online --formula rimontohq/tap/rimonto
       - brew install --formula rimontohq/tap/rimonto
       - brew test rimontohq/tap/rimonto
