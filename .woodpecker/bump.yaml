@@ -13,7 +13,8 @@ steps:
     image: rimonto-ci:local
     commands:
       - |
-        NPM=$$(npm view rimonto version)
+        # npm's registry answers from a cache for a few minutes after a release: ask past it.
+        NPM=$$(curl -fsS -H "Cache-Control: no-cache" "https://registry.npmjs.org/rimonto/latest?t=$$(date +%s)" | node -p "JSON.parse(require(\"fs\").readFileSync(0, \"utf8\")).version")
         FORMULA=$$(sed -nE 's|.*/download/v([0-9][^/]*)/.*|\1|p' Formula/rimonto.rb)
         echo "npm has $$NPM, the formula $$FORMULA"
         if [ "$$NPM" = "$$FORMULA" ]; then exit 0; fi
