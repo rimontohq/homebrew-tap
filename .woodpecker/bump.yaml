@@ -3,6 +3,10 @@
 # audits, installs and tests it in Homebrew's image, and only then pushes it to dev with this repository's deploy key
 # (the secret tap_push_key, given to cron and manual runs only; GitHub: Settings → Deploy keys, "Woodpecker: the bump
 # pipeline…"; a lost key is replaced by a new one). The push to dev then runs check.yaml as usual.
+# Stays on the server: it holds the key that pushes the formula (rm-infra: ops/runner/README.md).
+labels:
+  pool: server
+
 when:
   - event: cron
     cron: bump
