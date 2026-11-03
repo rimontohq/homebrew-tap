@@ -1,5 +1,9 @@
 # The formula's checks: every pull request, every push to dev, and every night (the Woodpecker cron "nightly"), so a
 # download that went away, a new Homebrew rule or an npm release without its formula shows up by itself.
+# Runs on the runner VM, like every check (rm-infra: ops/runner/README.md).
+labels:
+  pool: runner
+
 when:
   - event: pull_request
   - event: push
