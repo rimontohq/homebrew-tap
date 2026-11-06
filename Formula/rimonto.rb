@@ -2,8 +2,8 @@
 class Rimonto < Formula
   desc "Repair shop's Rimonto API from a terminal"
   homepage "https://developers.rimonto.app/cli/"
-  url "https://github.com/rimontohq/rm-cli/releases/download/v0.1.3/rimonto-0.1.3.tgz"
-  sha256 "785108c036b6cb17c8eec54138efdde160f613a020b0e01790c00654d01b2443"
+  url "https://github.com/rimontohq/rm-cli/releases/download/v0.1.4/rimonto-0.1.4.tgz"
+  sha256 "6a6a889169140882e7f329e6bbe72027b43857f623f5395bf1e4e4e63cedc370"
   license "MIT"
 
   depends_on "node"
