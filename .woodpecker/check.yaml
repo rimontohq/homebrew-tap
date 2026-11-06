@@ -38,3 +38,8 @@ steps:
         echo "the formula offers $$FORMULA, npm $$NPM"
         if [ "$$FORMULA" != "$$NPM" ]; then echo "The formula and npm disagree. A release goes to both (README)."; exit 1; fi
         npx -y "rimonto@$$NPM" --version | tee /dev/stderr | grep -q "^rimonto $$NPM "
+
+  # Secrets in the commits this branch adds (scripts/gitleaks.mjs, .gitleaks.toml).
+  - name: secrets
+    image: rimonto-ci:local
+    commands: [node scripts/gitleaks.mjs branch]
