@@ -39,6 +39,14 @@ steps:
         if [ "$$FORMULA" != "$$NPM" ]; then echo "The formula and npm disagree. A release goes to both (README)."; exit 1; fi
         npx -y "rimonto@$$NPM" --version | tee /dev/stderr | grep -q "^rimonto $$NPM "
 
+  # The pipelines linted with woodpecker-cli lint --strict (and a shell script or a Dockerfile with shellcheck or hadolint,
+  # once there is one), as in every Rimonto repository (scripts/lint-ops.mjs), and its own tests. A warning fails.
+  - name: lint
+    image: rimonto-ci:local
+    commands:
+      - node scripts/lint-ops.mjs
+      - node --test scripts/lint-ops.test.mjs
+
   # Secrets in the commits this branch adds (scripts/gitleaks.mjs, .gitleaks.toml).
   - name: secrets
     image: rimonto-ci:local
