@@ -52,18 +52,18 @@ async function viaApi(file, get) {
  */
 export async function download(file, { get = fetch, pause = sleep, tries = 3 } = {}) {
   const sources = [
-    ['release', () => get(`${RELEASE}/${file}`, { signal: AbortSignal.timeout(TIMEOUT_MS) })],
-    ['API', () => viaApi(file, get)],
+    { name: 'release', from: () => get(`${RELEASE}/${file}`, { signal: AbortSignal.timeout(TIMEOUT_MS) }) },
+    { name: 'API', from: () => viaApi(file, get) },
   ];
   const failures = [];
   for (let round = 1; round <= tries; round++) {
-    for (const [name, from] of sources) {
+    for (const { name, from } of sources) {
       try {
         const res = await from();
         if (res.ok) return Buffer.from(await res.arrayBuffer());
-        failures.push(`${name} ${res.status}`);
+        failures.push(`${name} ${String(res.status)}`);
       } catch (error) {
-        failures.push(`${name} ${error.message}`);
+        failures.push(`${name} ${error instanceof Error ? error.message : String(error)}`);
       }
     }
     if (round < tries) await pause(round * 5000);
