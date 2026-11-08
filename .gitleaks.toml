@@ -12,11 +12,11 @@ regex = '''rimonto_sk_[A-Za-z0-9]{40}'''
 keywords = ["rimonto_sk_"]
 
 [[rules]]
-id = "supabase-secret-key"
-description = "A Supabase secret key, which passes every row-level security policy"
+id = "backend-secret-key"
+description = "A secret key of the backend, which passes every row-level security policy"
 regex = '''sb_secret_[A-Za-z0-9_-]{20,}'''
 keywords = ["sb_secret_"]
 
 [[allowlists]]
-description = "A Supabase publishable key is public by design: the apps send it to every browser and device"
+description = "The backend's publishable key is public by design: the apps send it to every browser and device"
 regexes = ['''^sb_publishable_[A-Za-z0-9_-]+$''']
